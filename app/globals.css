@@ -43,3 +43,11 @@
     @apply bg-background text-foreground;
   }
 }
+
+.black {
+  color: black !important;
+}
+
+.comment-col {
+  @apply !text-gray-500;
+}

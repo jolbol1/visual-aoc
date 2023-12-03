@@ -1,12 +1,17 @@
 "use client";
-import { PartToolbar } from "@/components/part-toolbar";
+import { useCallback, useEffect, useRef, useState } from "react";
+import * as monaco from "monaco-editor";
+import { CodeEditor, CodeEditorProps } from "@/components/code-editor";
+import { Monaco } from "@monaco-editor/react";
 import { Card } from "@/components/ui/card";
-import { TextArea } from "@/components/ui/text-area";
+import { PartToolbar } from "@/components/part-toolbar";
 import { Toggle } from "@/components/ui/toggle";
-import { useState } from "react";
-import { TextField } from "react-aria-components";
 
-const exampleData = [
+const seedInput = [
+  "1abc2",
+  "pqr3stu8vwx",
+  "a1b2c3d4e5f",
+  "treb7uchet",
   "two1nine",
   "eightwothree",
   "abcone2threexyz",
@@ -14,11 +19,6 @@ const exampleData = [
   "4nineeightseven2",
   "zoneight234",
   "7pqrstsixteen",
-  "twone",
-  "1abc2",
-  "pqr3stu8vwx",
-  "a1b2c3d4e5f",
-  "treb7uchet",
 ];
 
 const matchSetDigits = [
@@ -35,9 +35,8 @@ const matchSetDigits = [
 
 const maxSetNo = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
 
-let sum = 0;
 const trebuchet = (data: string[], matchArr: string[]) => {
-  sum = 0;
+  let sum = 0;
   const x = data.map((current, index) => {
     const matchesFirst = matchArr.map((type) => current.indexOf(type));
     const matchesLast = matchArr.map((type) => current.lastIndexOf(type));
@@ -46,7 +45,7 @@ const trebuchet = (data: string[], matchArr: string[]) => {
       (x) => x === Math.min(...matchesFirst.filter((x) => x >= 0))
     );
     const lastIndex = matchesLast.findIndex(
-      (x) => x === Math.max(...matchesLast)
+      (x) => x === Math.max(...matchesLast.filter((x) => x >= 0))
     );
 
     const firstNumber = matchArr[firstIndex];
@@ -59,8 +58,9 @@ const trebuchet = (data: string[], matchArr: string[]) => {
       firstIndex < 0 ? 0 : firstIndex > 8 ? firstIndex - 8 : firstIndex + 1;
     const last =
       lastIndex < 0 ? 0 : lastIndex > 8 ? lastIndex - 8 : lastIndex + 1;
-    // console.log(current, parseInt(first.toString() + last.toString()));
-    sum += parseInt(first.toString() + last.toString());
+
+    const calValue = parseInt(first.toString() + last.toString());
+    sum += calValue;
 
     // Check for overlap
     const overlapStart = Math.max(firstWordIndex, lastWordIndex);
@@ -69,60 +69,18 @@ const trebuchet = (data: string[], matchArr: string[]) => {
       lastWordIndex + lastNumber?.length
     );
 
-    let styledValue;
-    if (overlapStart < overlapEnd) {
-      // There is an overlap
-      styledValue = (
-        <p>
-          {current.substring(0, firstWordIndex)}
-          <span className="bg-yellow-300 text-black">
-            {current.substring(firstWordIndex, overlapStart)}
-          </span>
-          <span className="bg-orange-400 text-black">
-            {current.substring(overlapStart, overlapEnd)}
-          </span>
-          <span className="bg-red-400 text-black">
-            {current.substring(overlapEnd, lastWordIndex + lastNumber.length)}
-          </span>
-          {current.substring(lastWordIndex + lastNumber.length)}
-        </p>
-      );
-    } else {
-      // No overlap
-      styledValue = (
-        <p>
-          {current.substring(0, firstWordIndex)}
-          <span className="bg-yellow-300 text-black">
-            {current.substring(
-              firstWordIndex,
-              firstWordIndex + firstNumber?.length
-            )}
-          </span>
-          {current.substring(
-            firstWordIndex + firstNumber?.length,
-            lastWordIndex
-          )}
-          <span className="bg-red-400 text-black">
-            {current.substring(
-              lastWordIndex,
-              lastWordIndex + lastNumber.length
-            )}
-          </span>
-          {current.substring(lastWordIndex + lastNumber.length)}
-        </p>
-      );
-    }
-
-    return (
-      <div key={current} className="flex gap-6">
-        {styledValue}
-        <span className="text-gray-300">
-          // Calibration Value: {parseInt(first.toString() + last.toString())}
-        </span>
-      </div>
-    );
+    return {
+      firstWordIndex,
+      firstWordEndIndex: firstWordIndex + firstNumber?.length,
+      lastWordIndex,
+      lastWordIndexEnd: lastWordIndex + lastNumber?.length,
+      overlapStart,
+      overlapEnd,
+      calValue,
+      length: current.length,
+    };
   });
-  return x;
+  return { lines: x, sum };
 };
 
 type DayOneProps = {
@@ -132,14 +90,174 @@ type DayOneProps = {
 const example2 =
   "two1nine\neightwothree\nabcone2threexyz\nxtwone3four\n4nineeightseven2\nzoneight234\n7pqrstsixteen";
 
-export default function DayOne({ searchParams }: DayOneProps) {
-  const [values, setValues] = useState(
-    searchParams.part === "2"
-      ? "1abc2\npqr3stu8vwx\na1b2c3d4e5f\ntreb7uchet"
-      : example2
+export default function MyEditor({ searchParams }: DayOneProps) {
+  const [editorState, setEditorState] =
+    useState<monaco.editor.IStandaloneCodeEditor>();
+  const [monacoState, setMonacoState] = useState<Monaco>();
+  const [currentDecorations, setCurrentDecorations] = useState<
+    monaco.editor.IModelDeltaDecoration[]
+  >([]);
+  const decorationsCollectionRef =
+    useRef<monaco.editor.IEditorDecorationsCollection>();
+  const [sum, setSum] = useState(0);
+
+  const highlightWord = (
+    editor: monaco.editor.IStandaloneCodeEditor,
+    monaco: Monaco
+  ) => {
+    const model = editor?.getModel();
+    const input = model?.getValue() ?? "";
+    const test = trebuchet(
+      input.split("\n"),
+      searchParams.part === "2" ? [...matchSetDigits, ...maxSetNo] : maxSetNo
+    );
+    setSum(test.sum);
+    const newDecorations: monaco.editor.IModelDeltaDecoration[] = test.lines
+      .map<monaco.editor.IModelDeltaDecoration[]>((match, index) =>
+        match.overlapStart < match.overlapEnd
+          ? [
+              {
+                range: new monaco.Range(
+                  index + 1,
+                  match.firstWordIndex + 1,
+                  index + 1,
+                  match.overlapStart + 1
+                ),
+                options: {
+                  className: "bg-yellow-300 text-black",
+                  inlineClassName: "black",
+                },
+              },
+              {
+                range: new monaco.Range(
+                  index + 1,
+                  match.overlapEnd + 1,
+                  index + 1,
+                  match.lastWordIndexEnd + 1
+                ),
+                options: {
+                  className: "bg-red-400 text-black",
+                  inlineClassName: "black",
+                },
+              },
+              {
+                range: new monaco.Range(
+                  index + 1,
+                  match.overlapStart + 1,
+                  index + 1,
+                  match.overlapEnd + 1
+                ),
+                options: {
+                  className: "bg-orange-400 text-black",
+                  inlineClassName: "black",
+                },
+              },
+              {
+                range: new monaco.Range(
+                  index + 1,
+                  0,
+                  index + 1,
+                  match.length + 1
+                ),
+                options: {
+                  isWholeLine: true,
+                  hoverMessage: {
+                    supportHtml: true,
+                    value: `**Calibration Value:** ${
+                      match.calValue === 0 ? "N/A" : match.calValue
+                    }`,
+                  },
+                },
+              },
+            ]
+          : [
+              {
+                range: new monaco.Range(
+                  index + 1,
+                  match.firstWordIndex + 1,
+                  index + 1,
+                  match.firstWordEndIndex + 1
+                ),
+                options: {
+                  className: "bg-yellow-300 text-black",
+                  inlineClassName: "black",
+                },
+              },
+              {
+                range: new monaco.Range(
+                  index + 1,
+                  match.lastWordIndex + 1,
+                  index + 1,
+                  match.lastWordIndexEnd + 1
+                ),
+                options: {
+                  className: "bg-red-400 text-black",
+                  inlineClassName: "black",
+                },
+              },
+              {
+                range: new monaco.Range(
+                  index + 1,
+                  0,
+                  index + 1,
+                  match.length + 1
+                ),
+                options: {
+                  isWholeLine: true,
+                  hoverMessage: {
+                    supportHtml: true,
+                    value: `**Calibration Value:** ${
+                      match.calValue === 0 ? "N/A" : match.calValue
+                    }`,
+                  },
+                },
+              },
+            ]
+      )
+      .flat();
+
+    setCurrentDecorations(newDecorations);
+  };
+
+  useEffect(() => {
+    if (editorState) {
+      if (decorationsCollectionRef.current) {
+        decorationsCollectionRef.current.clear();
+        decorationsCollectionRef.current.set(currentDecorations);
+      } else {
+        decorationsCollectionRef.current =
+          editorState.createDecorationsCollection(currentDecorations);
+      }
+    }
+  }, [currentDecorations, editorState]);
+
+  useEffect(() => {
+    // Change the update function
+    if (editorState && monacoState) {
+      // Rerun to change on click
+      highlightWord(editorState, monacoState);
+      editorState.onDidChangeModelContent(() => {
+        highlightWord(editorState, monacoState);
+      });
+    }
+  }, [editorState, monacoState, searchParams.part]);
+
+  const onMount = useCallback<NonNullable<CodeEditorProps["onMount"]>>(
+    async (editor, monaco) => {
+      const model = editor.getModel();
+
+      if (!model) {
+        throw new Error();
+      }
+
+      setEditorState(editor);
+      setMonacoState(monaco);
+    },
+    [searchParams.part]
   );
+
   return (
-    <div className="p-24 flex flex-col gap-4">
+    <div className="container flex flex-col gap-4">
       <Card className="p-3 flex justify-between items-end">
         <PartToolbar part={searchParams.part} />
         <Toggle variant="outline" className="w-[200px]">
@@ -147,23 +265,11 @@ export default function DayOne({ searchParams }: DayOneProps) {
         </Toggle>
       </Card>
       <div className="flex gap-2 relative">
-        <TextField className="w-1/2 h-full" onChange={setValues}>
-          <TextArea
-            className="min-h-full text-base  text-transparent bg-transparent caret-white"
-            value={values}
-          />
-        </TextField>
-        <div
-          aria-hidden
-          className="text-white w-1/2 z-[-1] absolute flex flex-col rounded-md border border-input px-3 py-2 ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-full text-base text-transparent bg-transparent caret-white"
-        >
-          {trebuchet(
-            values.split("\n"),
-            searchParams.part && searchParams.part === "2"
-              ? [...maxSetNo, ...matchSetDigits]
-              : [...maxSetNo]
-          )}
-        </div>
+        <CodeEditor
+          defaultValue={seedInput.join("\n")}
+          onMount={onMount}
+          className="h-screen"
+        />
       </div>
     </div>
   );
