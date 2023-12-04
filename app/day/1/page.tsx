@@ -257,20 +257,31 @@ export default function MyEditor({ searchParams }: DayOneProps) {
   );
 
   return (
-    <div className="container flex flex-col gap-4">
-      <Card className="p-3 flex justify-between items-end">
-        <PartToolbar part={searchParams.part} />
-        <Toggle variant="outline" className="w-[200px]">
-          {({ isSelected }) => (isSelected ? sum : "Show Answer")}
-        </Toggle>
-      </Card>
-      <div className="flex gap-2 relative">
-        <CodeEditor
-          defaultValue={seedInput.join("\n")}
-          onMount={onMount}
-          className="h-screen"
-        />
+    <div
+      className="flex flex-col gap-4 pb-6"
+      style={{ height: "calc(100vh - 57px)" }}
+    >
+      <div className="py-6 flex flex-col gap-2">
+        <h1 className="font-display text-4xl">Day 1: Trebuchet?!</h1>
+        <p className="text-muted-foreground">
+          The Elves are having trouble reading the values on the document
+        </p>
       </div>
+      <Card className="h-full overflow-hidden">
+        <div className="p-3 flex justify-between items-end border-b-border border-b bg-[#1e1e1e]">
+          <PartToolbar part={searchParams.part} />
+          <Toggle variant="outline" className="w-[200px] bg-background">
+            {({ isSelected }) => (isSelected ? sum : "Show Answer")}
+          </Toggle>
+        </div>
+        <div className="flex gap-2 relative h-[calc(100%-_87px)]">
+          <CodeEditor
+            defaultValue={seedInput.join("\n")}
+            onMount={onMount}
+            className="h-full"
+          />
+        </div>
+      </Card>
     </div>
   );
 }

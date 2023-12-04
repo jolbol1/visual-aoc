@@ -26,7 +26,7 @@ export const PartToolbar = ({ part = "1" }: { part: "1" | "2" }) => {
   return (
     <Toolbar className="flex flex-col gap-y-2">
       <Label className="font-bold">Part</Label>
-      <div>
+      <div className="bg-background rounded-md">
         <Toggle
           onChange={(val) => {
             setOneSelected(val);
