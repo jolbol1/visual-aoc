@@ -35,7 +35,7 @@ export function SiteHeader() {
               About Me
             </Link>
             <Link
-              href={"https://github.com/jolbol1"}
+              href={"https://github.com/jolbol1/visual-aoc"}
               target="_blank"
               rel="noreferrer"
             >
