@@ -252,7 +252,15 @@ export default function MyEditor({ searchParams }: DayOneProps) {
                 supportHtml: true,
                 value:
                   searchParams.part === "2"
-                    ? `**Fewest number of cubes** </br> Red: ${match.redMin} </br> Green: ${match.greenMin}</br> Red: ${match.blueMin}`
+                    ? `**Fewest number of cubes** </br> Red: ${
+                        match.redMin
+                      } </br> Green: ${match.greenMin}</br> Red: ${
+                        match.blueMin
+                      } </br> ${"🟥".repeat(
+                        match.redMin ?? 0
+                      )}  </br> ${"🟩".repeat(
+                        match.greenMin ?? 0
+                      )}  </br> ${"🟦".repeat(match.blueMin ?? 0)}`
                     : `**${match.fail ? "Not Possible" : "Possible"}**`,
               },
             },
