@@ -4,7 +4,13 @@ import { Toggle, Toolbar } from "./ui/toggle";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Label } from "./ui/label";
 
-export const PartToolbar = ({ part = "1" }: { part: "1" | "2" }) => {
+export const PartToolbar = ({
+  part = "1",
+  disable2 = false,
+}: {
+  part: "1" | "2";
+  disable2?: boolean;
+}) => {
   const [oneSelected, setOneSelected] = useState(part === "1");
 
   const router = useRouter();
@@ -39,6 +45,7 @@ export const PartToolbar = ({ part = "1" }: { part: "1" | "2" }) => {
           1
         </Toggle>
         <Toggle
+          isDisabled={disable2}
           onChange={(val) => {
             setOneSelected(!val);
             router.push(pathname + "?" + createQueryString("part", "2"));

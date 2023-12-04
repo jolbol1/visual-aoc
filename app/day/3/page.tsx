@@ -55,7 +55,7 @@ type Day2Data = {
   redMin?: number;
   greenMin?: number;
 };
-
+// Wow much performance
 const part1 = (data: string[]) => {
   type SymbolCoords = [number, number][];
   const symbolCoords: SymbolCoords = [];
@@ -154,8 +154,44 @@ const part1 = (data: string[]) => {
   };
 };
 
+function splitArrayIntoChunks(arr: any[], chunkSize: number): any[][] {
+  let result = [];
+  for (let i = 0; i < arr.length; i += chunkSize) {
+    let chunk = arr.slice(i, i + chunkSize);
+    result.push(chunk);
+  }
+  return result;
+}
+
 const part2 = (data: string[]) => {
-  return null;
+  type SymbolCoords = [number, number][];
+  let symbolCoords: SymbolCoords = [];
+  const grid = data.map((line) => line.split(""));
+  grid.forEach((line, lineIdx) => {
+    line.forEach((col, colIdx) => {
+      if (col.match(/\*/g)) {
+        symbolCoords.push([lineIdx, colIdx]);
+      }
+    });
+  });
+
+  const adjacentCoords: number[][] = [];
+  const test = symbolCoords.map((coord) => {
+    const array2DFlat: any[] = [];
+    directions.forEach((dir, idx) => {
+      const checkSymbolCoord = [coord[0] + dir[0], coord[1] + dir[1]];
+      const check = grid[checkSymbolCoord[0]][checkSymbolCoord[1]];
+      if (idx === 4) {
+        array2DFlat.push(grid[coord[0]][coord[1]]);
+      }
+      array2DFlat.push(check);
+    });
+    console.log(array2DFlat);
+    const test = splitArrayIntoChunks(array2DFlat, 3);
+    return test;
+  });
+
+  console.log(test);
 };
 
 type DayOneProps = {
@@ -277,7 +313,7 @@ export default function MyEditor({ searchParams }: DayOneProps) {
       </div>
       <Card className="h-full overflow-hidden">
         <div className="p-3 flex justify-between items-end border-b-border border-b bg-[#1e1e1e]">
-          <PartToolbar part={searchParams.part} />
+          <PartToolbar disable2 part={searchParams.part} />
           <Toggle variant="outline" className="w-[200px] bg-background">
             {({ isSelected }) => (isSelected ? sum : "Show Answer")}
           </Toggle>
