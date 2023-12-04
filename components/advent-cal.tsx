@@ -2,7 +2,6 @@
 import { ListBox, ListBoxItem } from "react-aria-components";
 import Image from "next/image";
 
-import { Card } from "./ui/card";
 import { cn } from "@/lib/utils";
 
 const days = [
@@ -36,7 +35,7 @@ export function AdventCalendar() {
   return (
     <ListBox
       layout="grid"
-      arial-label="advent calendar"
+      aria-label="advent calendar"
       items={days}
       className="outline-none grid justify-center grid-cols-[repeat(auto-fill,_minmax(150px,_150px))] gap-4  w-full  lg:max-w-[1014px]"
     >
@@ -47,18 +46,21 @@ export function AdventCalendar() {
             "bg-background flex justify-center items-center rounded-md border-border border h-[150px] w-[150px] relative overflow-hidden",
             { "data-[hovered]:bg-gray-400": item.completed }
           )}
+          aria-label={`Day ${item.id}`}
         >
           {({ isHovered }) => (
             <>
               <Image
                 className={cn(
-                  "absolute z-10",
+                  "absolute z-10 inset-0 h-[150px] w-[150px]",
                   (!item.completed || isHovered) && "opacity-40"
                 )}
                 src={`/advent/${item.id}.webp`}
                 alt={`Door ${item.id}`}
-                fill
-                style={{ objectFit: "cover" }}
+                width={200}
+                height={200}
+                priority
+                style={{ objectFit: "fill" }}
               />
               {item.id === 1 && (
                 <p className=" absolute top-0 right-0 z-10 text-xl">✅</p>
