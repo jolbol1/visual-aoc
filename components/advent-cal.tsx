@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 const days = [
   { id: 1, completed: true },
-  { id: 2, completed: false },
+  { id: 2, completed: true },
   { id: 3, completed: false },
   { id: 4, completed: false },
   { id: 5, completed: false },
@@ -57,12 +57,12 @@ export function AdventCalendar() {
                 )}
                 src={`/advent/${item.id}.webp`}
                 alt={`Door ${item.id}`}
-                width={200}
-                height={200}
+                width={150}
+                height={150}
                 priority
                 style={{ objectFit: "fill" }}
               />
-              {item.id === 1 && (
+              {item.completed && (
                 <p className=" absolute top-0 right-0 z-10 text-xl">✅</p>
               )}
               <p

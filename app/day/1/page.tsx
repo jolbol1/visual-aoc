@@ -6,6 +6,7 @@ import { Monaco } from "@monaco-editor/react";
 import { Card } from "@/components/ui/card";
 import { PartToolbar } from "@/components/part-toolbar";
 import { Toggle } from "@/components/ui/toggle";
+import { Link } from "react-aria-components";
 
 const seedInput = [
   "1abc2",
@@ -266,6 +267,12 @@ export default function MyEditor({ searchParams }: DayOneProps) {
         <p className="text-muted-foreground">
           The Elves are having trouble reading the values on the document
         </p>
+        <Link
+          className="aoc font-mono w-fit"
+          href="https://adventofcode.com/2023/day/1"
+        >
+          [Problem Link]
+        </Link>
       </div>
       <Card className="h-full overflow-hidden">
         <div className="p-3 flex justify-between items-end border-b-border border-b bg-[#1e1e1e]">

@@ -51,3 +51,15 @@
 .comment-col {
   @apply !text-gray-500;
 }
+
+.aoc {
+  display: inline-block;
+  text-decoration: none;
+  color: #00cc00;
+  text-shadow: 0 0 2px #00cc00, 0 0 5px #00cc00;
+}
+
+.aoc:hover {
+  color: #99ff99;
+  text-shadow: 0 0 2px #99ff99, 0 0 5px #99ff99;
+}
