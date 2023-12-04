@@ -179,10 +179,7 @@ const part2 = (data: string[]): PartData => {
 type DayOneProps = {
   searchParams: { part: "1" | "2" };
 };
-
-const example2 =
-  "two1nine\neightwothree\nabcone2threexyz\nxtwone3four\n4nineeightseven2\nzoneight234\n7pqrstsixteen";
-
+// If you have made it here, Im sorry for the mess. I do not have time to optimise the challenges once theyre done, I take my first success and run with it
 export default function MyEditor({ searchParams }: DayOneProps) {
   const [editorState, setEditorState] =
     useState<monaco.editor.IStandaloneCodeEditor>();

@@ -36,6 +36,7 @@ const matchSetDigits = [
 
 const maxSetNo = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
 
+// If you have made it here, Im sorry for the mess. I do not have time to optimise the challenges once theyre done, I take my first success and run with it
 const trebuchet = (data: string[], matchArr: string[]) => {
   let sum = 0;
   const x = data.map((current, index) => {
