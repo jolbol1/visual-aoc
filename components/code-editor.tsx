@@ -10,6 +10,7 @@ const DEFAULT_OPTIONS = {
   lineNumbers: "on",
   tabSize: 2,
   insertSpaces: false,
+  quickSuggestions: false,
   minimap: {
     enabled: false,
   },
