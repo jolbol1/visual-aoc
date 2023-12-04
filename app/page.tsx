@@ -13,7 +13,7 @@ export default function Home({
   searchParams: { snowOff: boolean };
 }) {
   return (
-    <main className="flex-1 flex min-h-screen flex-col items-center container justify-center gap-6 py-6 pb-12">
+    <main className="flex-1 flex min-h-screen flex-col items-center container justify-center gap-6 py-6 pb-12 relative">
       <div className="overflow-hidden z-[-1] absolute">
         {!searchParams.snowOff ? <Snow /> : null}
       </div>
