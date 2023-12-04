@@ -25,7 +25,15 @@ export function SiteHeader() {
           </nav>
         </div>
         <div className="flex flex-1 items-center space-x-2 justify-end">
-          <nav className="flex items-center">
+          <nav className="flex items-center gap-2">
+            <Link
+              href="https://jamesshopland.com"
+              target="_blank"
+              rel="noreferrer"
+              className="transition-colors hover:text-foreground/80 text-sm font-medium"
+            >
+              About Me
+            </Link>
             <Link
               href={"https://github.com/jolbol1"}
               target="_blank"
