@@ -154,44 +154,131 @@ const part1 = (data: string[]) => {
   };
 };
 
-function splitArrayIntoChunks(arr: any[], chunkSize: number): any[][] {
-  let result = [];
-  for (let i = 0; i < arr.length; i += chunkSize) {
-    let chunk = arr.slice(i, i + chunkSize);
-    result.push(chunk);
-  }
-  return result;
-}
-
+// Since I finished this I can see lots of room to make this better, no time/reason too however.
 const part2 = (data: string[]) => {
   type SymbolCoords = [number, number][];
-  let symbolCoords: SymbolCoords = [];
+  const symbolCoords: SymbolCoords = [];
   const grid = data.map((line) => line.split(""));
-  grid.forEach((line, lineIdx) => {
+  const symbols = grid.forEach((line, lineIdx) => {
     line.forEach((col, colIdx) => {
-      if (col.match(/\*/g)) {
+      if (col.match(/\*/)) {
         symbolCoords.push([lineIdx, colIdx]);
       }
     });
   });
 
-  const adjacentCoords: number[][] = [];
-  const test = symbolCoords.map((coord) => {
-    const array2DFlat: any[] = [];
-    directions.forEach((dir, idx) => {
+  const adjacentCoords: { numberCoord: number[]; symbol: number[] }[] = [];
+  symbolCoords.forEach((coord) => {
+    directions.forEach((dir) => {
       const checkSymbolCoord = [coord[0] + dir[0], coord[1] + dir[1]];
-      const check = grid[checkSymbolCoord[0]][checkSymbolCoord[1]];
-      if (idx === 4) {
-        array2DFlat.push(grid[coord[0]][coord[1]]);
+      // Make sure coord can exist (isnt negative)
+      if (!checkSymbolCoord.some((val) => val < 0)) {
+        const check = grid[checkSymbolCoord[0]][checkSymbolCoord[1]];
+        if (check?.match(/[0-9]/)) {
+          adjacentCoords.push({ numberCoord: checkSymbolCoord, symbol: coord });
+        }
       }
-      array2DFlat.push(check);
     });
-    console.log(array2DFlat);
-    const test = splitArrayIntoChunks(array2DFlat, 3);
-    return test;
   });
 
-  console.log(test);
+  const partNumbers: string[] = [];
+  const numberCoords: {
+    number: string;
+    line: number;
+    start: number;
+    end: number;
+    symbol: number[];
+  }[] = [];
+  const checkedCoords: number[][] = [];
+  const counts: { [key: string]: number } = {};
+  const allGears: { [key: string]: number[] } = {};
+  adjacentCoords.forEach((coord) => {
+    let beforeCol = coord.numberCoord[1] - 1;
+    let afterCol = coord.numberCoord[1] + 1;
+    if (
+      checkedCoords.find(
+        (coords) =>
+          coords[0] === coord.numberCoord[0] &&
+          coords[1] === coord.numberCoord[1]
+      )
+    ) {
+      return;
+    }
+    let number = grid[coord.numberCoord[0]][coord.numberCoord[1]];
+    console.log(
+      number,
+      checkedCoords,
+      coord,
+      checkedCoords.includes(coord.numberCoord)
+    );
+    checkedCoords.push(coord.numberCoord);
+
+    while (beforeCol >= 0) {
+      if (grid[coord.numberCoord[0]][beforeCol]?.match(/[0-9]/)) {
+        number = `${grid[coord.numberCoord[0]][beforeCol]}${number}`;
+        checkedCoords.push([coord.numberCoord[0], beforeCol]);
+      } else {
+        break;
+      }
+
+      beforeCol = beforeCol - 1;
+    }
+
+    let test = true;
+    while (test) {
+      if (grid[coord.numberCoord[0]][afterCol]?.match(/[0-9]/)) {
+        number = `${number}${grid[coord.numberCoord[0]][afterCol]}`;
+        checkedCoords.push([coord.numberCoord[0], afterCol]);
+      } else {
+        test = false;
+        break;
+      }
+
+      afterCol = afterCol + 1;
+    }
+
+    partNumbers.push(number);
+    counts[coord.symbol.toString()] =
+      (counts[coord.symbol.toString()] ?? 0) + 1;
+
+    if (!allGears[coord.symbol.toString()]) {
+      allGears[coord.symbol.toString()] = [parseInt(number)];
+    } else {
+      allGears[coord.symbol.toString()].push(parseInt(number));
+    }
+    numberCoords.push({
+      number,
+      line: coord.numberCoord[0],
+      start: beforeCol + 1,
+      end: afterCol,
+      symbol: coord.symbol,
+    });
+  });
+
+  const gearSymbols = symbolCoords.filter(
+    (c) => counts[c.toString()] && counts[c.toString()] === 2
+  );
+
+  const gearNumbers = numberCoords.filter(
+    (numberCoord) =>
+      counts[numberCoord.symbol.toString()] &&
+      counts[numberCoord.symbol.toString()] === 2
+  );
+
+  const sum = Object.values(allGears)
+    .filter((c) => c.length === 2)
+    .reduce((acc, curr) => {
+      return acc + curr.reduce((acc, curr) => acc * curr);
+    }, 0);
+
+  return {
+    symbolCoords: gearSymbols,
+    adjacentCoords,
+    partNumbers,
+    checkedCoords,
+    sum,
+    numberCoords: gearNumbers,
+  };
 };
 
 type DayOneProps = {
@@ -313,7 +400,7 @@ export default function MyEditor({ searchParams }: DayOneProps) {
       </div>
       <Card className="h-full overflow-hidden">
         <div className="p-3 flex justify-between items-end border-b-border border-b bg-[#1e1e1e]">
-          <PartToolbar disable2 part={searchParams.part} />
+          <PartToolbar part={searchParams.part} />
           <Toggle variant="outline" className="w-[200px] bg-background">
             {({ isSelected }) => (isSelected ? sum : "Show Answer")}
           </Toggle>
